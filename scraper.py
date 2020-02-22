@@ -7,6 +7,7 @@ from typing import Tuple, Optional, List
 # types
 ResultSet = bs4.element.ResultSet
 Tag = bs4.element.Tag
+DebateRecordTuple = Tuple[str, str, bool]
 
 def filter_html(tag: Tag) -> bool:
     """
@@ -30,7 +31,15 @@ def match_name_and_dialog(tag_text: str) -> Optional[bool]:
     tag_matcher = '^(([A-Z]+)( \(\?\))?): (.+)$'
     return re.match(tag_matcher, tag_text)
 
-def extract_name_and_dialog(p_tag: Tag, last_match: str) -> Tuple[str, str, bool]:
+def build_tuple(name: str, dialog: str, replace_match: bool) -> DebateRecordTuple:
+    """
+    Cleans dialog and packs up various parts of the match into a tuple
+    """
+    # transcript uses "health care" and "healthcare" interchangably
+    dialog = dialog.replace('health care', 'healthcare')
+    return (name, dialog, replace_match)
+
+def extract_name_and_dialog(p_tag: Tag, last_match: str) -> DebateRecordTuple:
     """
     Takes in a parsed BeautifulSoup tag and turns it into a tuple of who
     said what and whether or not we need to redajust the store last speaker
@@ -48,8 +57,7 @@ def extract_name_and_dialog(p_tag: Tag, last_match: str) -> Tuple[str, str, bool
         name = last_match
         dialog = tag_text
         replace_match = False
-    # transcript uses "health care" and "healthcare" interchangably
-    return (name, dialog.replace('health care', 'healthcare'), replace_match)
+    return build_tuple(name, dialog, replace_match)
 
 def get_html(url: str) -> ResultSet:
     """
