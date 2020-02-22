@@ -3,8 +3,6 @@ from bs4 import BeautifulSoup
 import re
 import operator
 
-html_string = requests.get('https://www.washingtonpost.com/politics/2019/07/31/transcript-first-night-second-democratic-debate/').content
-html_tree = BeautifulSoup(html_string, 'html.parser')
 
 def filter_html(tag):
     # gets all p tags with no i tags in them
@@ -16,35 +14,43 @@ def filter_html(tag):
     else:
         return False
 
+def match_name_and_dialog(tag_text):
+        # grabs the name of the speaker
+        tag_matcher = '^(([A-Z]+)( \(\?\))?): (.+)$'
+        return re.match(tag_matcher, tag_text)
 
-p_collection = html_tree.find('article').find_all(filter_html)
-
-# we don't want to include the moderators in our table
-moderators = ['tapper', 'bash', 'lemon']
-last_match = None
-debate_collection = []
-for p in p_collection:
-    if p.string == None:
-        continue
-    tag_text = p.string.replace('\n', '')
-    # grabs the name of the speaker
-    tag_matcher = '^(([A-Z]+)( \(\?\))?): (.+)$'
-    speaker_match = re.match(tag_matcher, tag_text)
-
+def extract_name_and_dialog(p_tag, last_match):
+    tag_text = p_tag.string.replace('\n', '')
+    speaker_match = match_name_and_dialog(tag_text)
     if speaker_match:
         # if there is a name in front, we know there is a new speaker
         name = speaker_match.group(2).lower()
-        last_match = name
+        replace_match = True
         dialog = speaker_match.group(4)
     else:
         # otherwise, use the last name we saw
         name = last_match
+        replace_match = False
         dialog = tag_text
     # transcript uses "health care" and "healthcare" interchangably
-    dialog = dialog.replace('health care', 'healthcare')
-    if name in moderators:
-        # throw out moderator dialog
-        last_match = name
-        continue
-    debate_collection.append({'candidate': name, 'dialog': dialog})
-print(debate_collection)
+    return (name, dialog.replace('health care', 'healthcare'), replace_match)
+
+def get_html(url):
+    html_string = requests.get(url).content
+    html_tree = BeautifulSoup(html_string, 'html.parser')
+    return html_tree.find('article').find_all(filter_html)
+
+def debate_pipeline(url, moderators):
+    p_collection = get_html(url)
+    debate_collection = []
+    last_match = None
+    for p in p_collection:
+        if p.string == None:
+            continue
+        name, dialog, replace_match = extract_name_and_dialog(p, last_match)
+        if replace_match:
+            last_match = name
+        debate_collection.append({'speaker': name, 'dialog': dialog, 'moderator': (name in moderators)})
+    return debate_collection
+
+print(debate_pipeline('https://www.washingtonpost.com/politics/2019/07/31/transcript-first-night-second-democratic-debate/', ['tapper', 'bash', 'lemon']))
