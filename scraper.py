@@ -9,7 +9,8 @@ Tag = bs4.element.Tag
 
 # we're going to be removing a lot of things between brackets
 bracket_text = re.compile(r'\[.+\]')
-
+# captures anything not a letter, number, or space
+characters = re.compile(r'[^\w\d ]')
 
 def get_tags_from_url(url: str) -> List[Tag]:
     page = requests.get(url)
@@ -26,6 +27,20 @@ def remove_bracket_text(dialog: str) -> str:
     clean_string = re.sub(bracket_text, '', dialog)
     return clean_string
 
+def remove_specials(dialog: str) -> str:
+    """
+    Removes any special characters (non alphanumeric or space) from the text
+    """
+    clean_string = re.sub(characters, '', dialog)
+    return clean_string
+
+def clean_text(dialog: str) -> str:
+    """
+    Removes all bracketed text and special characters from a string and also makes it lower case
+    """
+    bracketless = remove_bracket_text(dialog)
+    specialless = remove_specials(bracketless)
+    return specialless.lower()
 
 def split_tag(tag: Tag) -> Dict[str, str]:
     """
@@ -36,7 +51,7 @@ def split_tag(tag: Tag) -> Dict[str, str]:
         speaker, dialog = tag.decode_contents().split('<br/>')
         # remove everything after colon from after speaker name
         speaker = speaker.split(':')[0]
-        return {'speaker': speaker, 'dialog': remove_bracket_text(dialog)}
+        return {'speaker': speaker, 'dialog': clean_text(dialog)}
     except ValueError as e:
         # No <br> means we can't unpack. Should only happen for non-dialog
         return None
