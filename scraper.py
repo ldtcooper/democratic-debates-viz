@@ -40,7 +40,7 @@ def clean_text(dialog: str) -> str:
     """
     bracketless = remove_bracket_text(dialog)
     specialless = remove_specials(bracketless)
-    return specialless.lower()
+    return specialless.lower().strip()
 
 def split_tag(tag: Tag) -> Dict[str, str]:
     """
@@ -51,7 +51,12 @@ def split_tag(tag: Tag) -> Dict[str, str]:
         speaker, dialog = tag.decode_contents().split('<br/>')
         # remove everything after colon from after speaker name
         speaker = speaker.split(':')[0]
-        return {'speaker': speaker.strip(), 'dialog': clean_text(dialog)}
+        clean_dialog = clean_text(dialog)
+        # some dialog will end up as blank rows because it is all in brackets
+        # e.g. "Audience: [booing]"
+        if len(clean_dialog) == 0:
+            return None
+        return {'speaker': speaker.strip(), 'dialog': clean_dialog}
     except ValueError as e:
         # No <br> means we can't unpack. Should only happen for non-dialog
         return None
