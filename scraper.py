@@ -51,7 +51,7 @@ def split_tag(tag: Tag) -> Dict[str, str]:
         speaker, dialog = tag.decode_contents().split('<br/>')
         # remove everything after colon from after speaker name
         speaker = speaker.split(':')[0]
-        return {'speaker': speaker, 'dialog': clean_text(dialog)}
+        return {'speaker': speaker.strip(), 'dialog': clean_text(dialog)}
     except ValueError as e:
         # No <br> means we can't unpack. Should only happen for non-dialog
         return None
