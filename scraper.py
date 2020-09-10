@@ -74,7 +74,7 @@ def process_transcript(url: str, debate_num: int) -> List[Dict[str, str]]:
 def make_csv(transcripts: List[Dict[str, str]]):
     # adapted from https://stackoverflow.com/questions/3086973/how-do-i-convert-this-list-of-dictionaries-to-a-csv-file
     headers = transcripts[0].keys()
-    with open('debates.csv', 'w', encoding='utf8', newline='') as output:
+    with open('raw_debates.csv', 'w', encoding='utf8', newline='') as output:
         dict_writer = csv.DictWriter(output, headers)
         dict_writer.writeheader()
         dict_writer.writerows(transcripts)
