@@ -61,7 +61,7 @@ def split_tag(tag: Tag) -> Dict[str, str]:
         # No <br> means we can't unpack. Should only happen for non-dialog
         return None
 
-def convert_transcrit_to_list(transcript: List[Tag], debate_num: int) -> List[Dict[str, str]]:
+def convert_transcript_to_list(transcript: List[Tag], debate_num: int) -> List[Dict[str, str]]:
     dialog_list = []
     for p in transcript:
         row = split_tag(p)
@@ -74,7 +74,7 @@ def convert_transcrit_to_list(transcript: List[Tag], debate_num: int) -> List[Di
 
 def process_transcript(url: str, debate_num: int) -> List[Dict[str, str]]:
     transcript = get_tags_from_url(url)
-    return  convert_transcrit_to_list(transcript, debate_num)
+    return  convert_transcript_to_list(transcript, debate_num)
 
 def make_csv(transcripts: List[Dict[str, str]]):
     # adapted from https://stackoverflow.com/questions/3086973/how-do-i-convert-this-list-of-dictionaries-to-a-csv-file
