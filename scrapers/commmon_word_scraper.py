@@ -22,7 +22,7 @@ def save_words(words: List[str], name: str) -> None:
     text_file.close()
 
 def get_name_from_url(url: str) -> str:
-    template = '{name}.json'
+    template = '../data/{name}.json'
     name = url.split('/')[-2]
     return template.format(name = name)
 
